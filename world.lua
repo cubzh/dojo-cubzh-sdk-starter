@@ -97,6 +97,7 @@ end
 
 local onEntityUpdateCallbacks = {
     all = function(key, entity)
+        if not entity then return end
         print("update", key, JSON:Encode(entity))
         local player = getOrCreatePlayerEntity(key, entity)
         if player then
