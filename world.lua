@@ -204,6 +204,9 @@ dojo.createToriiClient = function(self, config)
 end
 
 dojo.getModel = function(_, entity, modelName)
+    if not entity then
+        return
+    end
     for key, model in pairs(entity) do
         if key == modelName then
             return model
