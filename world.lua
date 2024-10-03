@@ -43,7 +43,13 @@ function dojoUpdatePosition(key, position)
     if not position then return end
     local player = getOrCreatePlayerEntity(key, position)
     if player then
-        player:update(position)
+        print("new pos", position)
+        player.avatar.Position = {
+            ((position.vec.value.x.value - avatar.originalPos.x) + 0.5) * map.Scale.X,
+            0,
+            (-(position.vec.value.y.value - avatar.originalPos.y) + 0.5) * map.Scale.Z
+        }
+        player.position = position
     end
 end
 
@@ -145,19 +151,6 @@ getOrCreatePlayerEntity = function(key, position)
     local entity = entities[key]
     if not entity then
         entity = createEntity(key, position)
-    end
-
-    entity.update = function(self, position)
-        if not position then return end
-        local avatar = self.avatar
-
-        avatar.Position = {
-            ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
-            0,
-            (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
-        }
-
-        self.position = position
     end
 
     return entity
