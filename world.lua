@@ -100,8 +100,6 @@ function updateRemainingMoves(key, moves)
     local isLocalPlayer = myAddress == moves.player.value
     if not isLocalPlayer then return end
 
-    print("REMAININGMOVE", JSON:Encode(moves))
-
     if remainingMoves then
         remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
     end
