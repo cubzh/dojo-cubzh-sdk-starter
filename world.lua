@@ -88,17 +88,19 @@ end
 function updateRemainingMoves(key, moves)
     if not moves then return end
 
+    local avatar = entities[key].avatar
+    -- Rotate avatar based on latest direction
+    if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
+    if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
+    if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
+    if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
+
     -- Check if is local player
     local myAddress = dojo.burnerAccount.Address
     local isLocalPlayer = myAddress == moves.player.value
     if not isLocalPlayer then return end
 
     print("REMAININGMOVE", JSON:Encode(moves))
-    -- Rotate avatar based on latest direction
-    if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
-    if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
-    if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
-    if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
 
     if remainingMoves then
         remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
