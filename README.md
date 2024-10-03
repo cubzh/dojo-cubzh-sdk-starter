@@ -8,6 +8,9 @@
   <img src="demo.gif" alt="Play Now" width="100%" height="100%">
 </div>
 
+> [!WARNING]
+> You need to run the project locally to be able to play.
+
 This repository is a starter pack to start building your game using Cubzh and the Dojo SDK.
 
 [Dojo](https://github.com/dojoengine/dojo) is a powerful game engine designed to create fully on-chain games, leveraging blockchain technology to ensure transparency, ownership, and decentralized gameplay. It allows developers to build complex game logic and state management directly on the blockchain.
