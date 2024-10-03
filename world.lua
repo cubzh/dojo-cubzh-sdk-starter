@@ -64,7 +64,7 @@ getOrCreatePlayerEntity = function(key, position)
     entity.update = function(self, position)
         local avatar = self.avatar
 
-        print("POSITION", JSON:Encode(position))
+        print("POSITION", JSON:Encode(position.vec.value))
         avatar.Position = {
             ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
             0,
