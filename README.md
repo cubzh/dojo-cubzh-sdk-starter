@@ -145,15 +145,6 @@ local callbacksExample = {
 
 You can open the module [here](https://github.com/caillef/cubzh-library/blob/main/dojo/dojo_module.lua) and check how the Dojo table is used
 
-## Getting Started
-
-To run this project:
-
-1. Follow the backend setup instructions above
-2. Fork this repository
-3. Update the README link in the play button to point to your forked repository
-4. Visit the Cubzh link provided at the top of this README to play the game
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
