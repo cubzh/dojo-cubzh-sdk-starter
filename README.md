@@ -5,7 +5,7 @@
     <img src="play_button.png" alt="Play Now" width="30%" height="30%">
   </a>
   <p></p>
-  <img src="diamondpit.gif" alt="Play Now" width="100%" height="100%">
+  <img src="demo.gif" alt="Play Now" width="100%" height="100%">
 </div>
 
 This repository is a starter pack to start building your game using Cubzh and the Dojo SDK.
