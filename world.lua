@@ -251,7 +251,8 @@ dojoActions = {
     end,
     move = function(dir)
         if not dojo.toriiClient then return end
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move",
-            string.format("[\"%d\"]", dir))
+        local calldata = string.format("[\"%d\"]", dir)
+        print(dojo.burnerAccount, dojo.config.actions, "move", calldata)
+        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move", calldata)
     end,
 }
