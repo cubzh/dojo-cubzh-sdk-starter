@@ -14,6 +14,10 @@ This repository is a starter pack to start building your game using Cubzh and th
 
 [Cubzh](https://github.com/cubzh/cubzh) complements Dojo beautifully as a frontend solution for several reasons: it uses Lua, a language known for its simplicity and ease of learning, making it accessible to both novice and experienced developers. Additionally, Cubzh's voxel-based graphics system, where everything is constructed from cubes, provides a unique and charming aesthetic that's easy to work with. Furthermore, Cubzh boasts a vibrant community of creators who have produced a vast array of pre-made items and assets, significantly speeding up the game development process and allowing developers to focus on implementing their unique game mechanics and integrating with Dojo's on-chain capabilities.
 
+This project uses the [dojo-starter](https://github.com/dojoengine/dojo-starter) project that setups simple methods to spawn a character and to move on a grid.
+
+The file `world.lua` contains the Cubzh code that replicate what is written on-chain and that controls the movement of one character.
+
 ## Backend Setup with Dojo
 
 1. Install Dojo version 1.0.0-alpha.12
