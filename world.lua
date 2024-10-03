@@ -189,7 +189,9 @@ function startGame()
 
     -- DOJO
     -- add callbacks for all existing entities
-    dojo:syncEntities(onEntityUpdateCallbacks)
+    Timer(2, function()
+        dojo:syncEntities(onEntityUpdateCallbacks)
+    end)
     -- add callbacks when an entity is updated
     dojo:setOnEntityUpdateCallbacks(onEntityUpdateCallbacks)
 
