@@ -96,6 +96,7 @@ end
 
 local onEntityUpdateCallbacks = {
     all = function(key, entity)
+        print("update", key, JSON:Encode(entity))
         local player = getOrCreatePlayerEntity(key, entity)
         if player then
             player:update(entity)
