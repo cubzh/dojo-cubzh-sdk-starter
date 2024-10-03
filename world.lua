@@ -7,190 +7,17 @@ local worldInfo = {
     playerSigningKey = "0x2bbf4f9fd0bbb2e60b0316c1fe0b76cf7a4d0198bd493ced9b8df2a3a24d68a",
 }
 
+-- CONSTANTS
 local Direction = {
     Left = 1,
     Right = 2,
     Up = 3,
     Down = 4,
 }
-
 local avatarNames = { "caillef", "aduermael", "gdevillele", "claire", "soliton", "buche", "voxels", "petroglyph" }
 
+-- GLOBAL VARIABLES
 local entities = {}
-getOrCreatePlayerEntity = function(key, data)
-    if not dojo:getModel(data, "dojo_examples-Position") then return end
-    local entity = entities[key]
-    if not entity then
-        local ui = require("uikit")
-        local avatar = require("avatar"):get(avatarNames[math.random(1, #avatarNames)])
-        avatar.Scale = 0.2
-        --local avatar = MutableShape()
-        --avatar.Pivot = { 0.5, 0, 0.5 }
-        --avatar:AddBlock(Color.Red,0,0,0)
-        --avatar.Scale = 2
-        avatar:SetParent(World)
-        avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
-        avatar.Rotation.Y = math.pi
-        avatar.Physics = PhysicsMode.Disabled
-
-        local handle = Text()
-        handle:SetParent(avatar)
-        handle.FontSize = 2 / avatar.Scale.X
-        handle.LocalPosition = { 0, 4 * handle.FontSize, 0 }
-        avatar.nameHandle = handle
-        handle.Backward = Camera.Backward
-
-        entity = {
-            key = data.Key,
-            data = data,
-            originalPos = { x = 10, y = 10 },
-            avatar = avatar
-        }
-        entities[key] = entity
-    end
-
-    myAddress = dojo.burnerAccount.Address
-    entity.update = function(self, newEntity)
-        local avatar = self.avatar
-
-        local moves = dojo:getModel(newEntity, "dojo_examples-Moves")
-        if moves then
-            if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
-            if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
-            if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
-            if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
-
-            local isLocalPlayer = myAddress == moves.player.value
-            if remainingMoves and isLocalPlayer then
-                remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
-            end
-        end
-
-        local position = dojo:getModel(newEntity, "dojo_examples-Position")
-        if position then
-            print(JSON:Encode(position))
-            avatar.Position = {
-                ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
-                0,
-                (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
-            }
-        end
-
-        local playerConfig = dojo:getModel(newEntity, "dojo_examples-PlayerConfig")
-        if playerConfig then
-            local name = playerConfig.name.value
-            avatar.nameHandle.Text = name
-            local isLocalPlayer = myAddress == playerConfig.player.value
-            if isLocalPlayer then
-                avatar.nameHandle.BackgroundColor = Color.Red
-                avatar.nameHandle.Color = Color.White
-            end
-        end
-
-        avatar.nameHandle.Backward = Camera.Backward
-
-        self.data = newEntity
-    end
-
-    return entity
-end
-
-function startGame(toriiClient)
-    -- sync existing entities
-    toriiClient:Entities("{ \"limit\": 100, \"offset\": 0 }", function(entities)
-        for key, newEntity in pairs(entities) do
-            local entity = getOrCreatePlayerEntity(key, newEntity)
-            if entity then entity:update(newEntity) end
-        end
-    end)
-
-    -- set on entity update callback
-    -- match everything
-    local clauseJsonStr = "[{ \"Keys\": { \"keys\": [], \"models\": [], \"pattern_matching\": \"VariableLen\" } }]"
-    toriiClient:OnEntityUpdate(clauseJsonStr, function(entities)
-        for key, newEntity in pairs(entities) do
-            local entity = getOrCreatePlayerEntity(key, newEntity)
-            if entity then entity:update(newEntity) end
-        end
-    end)
-
-    -- call spawn method
-    dojo.actions.spawn()
-    Timer(2, function()
-        dojo.actions.set_player_config("focg lover")
-    end)
-
-    -- init ui
-    ui = require("uikit")
-    remainingMoves = ui:createText("Remaining moves: 50", Color.White, "big")
-    remainingMoves.parentDidResize = function()
-        remainingMoves.pos = { Screen.Width - remainingMoves.Width - 5, Screen.Height - remainingMoves.Height -
-        Screen.SafeArea.Top }
-    end
-    remainingMoves:parentDidResize()
-
-    if Screen.Width < Screen.Height then
-        local controlsFrame = ui:createFrame()
-        local size = 100
-        local leftBtn = ui:createButton("⬅️")
-        leftBtn.parentDidResize = function()
-            leftBtn.pos = { 0, 0 }
-        end
-        leftBtn:setParent(controlsFrame)
-        leftBtn.onRelease = function()
-            dojo.actions.move(Direction.Left)
-        end
-        local rightBtn = ui:createButton("➡️")
-        rightBtn.parentDidResize = function()
-            rightBtn.pos = { size * 2, 0 }
-        end
-        rightBtn:setParent(controlsFrame)
-        rightBtn.onRelease = function()
-            dojo.actions.move(Direction.Right)
-        end
-        local downBtn = ui:createButton("⬇️")
-        downBtn.parentDidResize = function()
-            downBtn.pos = { size, 0 }
-        end
-        downBtn:setParent(controlsFrame)
-        downBtn.onRelease = function()
-            dojo.actions.move(Direction.Down)
-        end
-        local upBtn = ui:createButton("⬆️")
-        upBtn.parentDidResize = function()
-            upBtn.pos = { size, size }
-        end
-        upBtn:setParent(controlsFrame)
-        upBtn.onRelease = function()
-            dojo.actions.move(Direction.Up)
-        end
-
-        leftBtn.Size = size
-        rightBtn.Size = size
-        downBtn.Size = size
-        upBtn.Size = size
-
-        controlsFrame.parentDidResize = function()
-            controlsFrame.pos = { Screen.Width - size * 3 - 10, 10 }
-        end
-        controlsFrame:parentDidResize()
-
-        local nameInput = ui:createTextInput("focg lover", "", "default")
-        nameInput.parentDidResize = function()
-            nameInput.pos = { 10, 10 }
-        end
-        nameInput:parentDidResize()
-        nameInput.onFocus = function()
-            nameInput.Text = ""
-        end
-        nameInput.onFocusLost = function()
-            dojo.actions.set_player_config(nameInput.Text)
-        end
-        nameInput.onSubmit = function()
-            dojo.actions.set_player_config(nameInput.Text)
-        end
-    end
-end
 
 Client.OnStart = function()
     map = MutableShape()
@@ -212,24 +39,101 @@ Client.OnStart = function()
     dojo:createToriiClient(worldInfo)
 end
 
-Client.OnChat = function(payload)
-    local message = payload.message
-    if string.sub(payload.message, 1, 6) == "!name " then
-        local name = string.sub(message, 7, #message)
-        dojo.actions.set_player_config(name)
-        return true
+getOrCreatePlayerEntity = function(key, data)
+    if not dojo:getModel(data, "dojo_examples-Position") then
+        return
     end
+    local entity = entities[key]
+    if not entity then
+        local avatarIndex = tonumber(key) % #avatarNames
+        print("avatar index", avatarIndex)
+        local avatar = require("avatar"):get(avatarNames[avatarIndex])
+        avatar.Scale = 0.2
+        avatar:SetParent(World)
+        avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
+        avatar.Rotation.Y = math.pi
+        avatar.Physics = PhysicsMode.Disabled
+
+        entity = {
+            key = data.Key,
+            data = data,
+            originalPos = { x = 10, y = 10 },
+            avatar = avatar
+        }
+        entities[key] = entity
+    end
+
+    entity.update = function(self, newEntity)
+        local avatar = self.avatar
+
+        local moves = dojo:getModel(newEntity, "dojo_examples-Moves")
+        if moves then
+            if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
+            if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
+            if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
+            if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
+
+            local isLocalPlayer = myAddress == moves.player.value
+            if remainingMoves and isLocalPlayer then
+                remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
+            end
+        end
+
+        local position = dojo:getModel(newEntity, "dojo_examples-Position")
+        if position then
+            avatar.Position = {
+                ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
+                0,
+                (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
+            }
+        end
+
+        self.data = newEntity
+    end
+
+    return entity
+end
+
+local onEntityUpdateCallbacks = {
+    all = function(key, entity)
+        local player = getOrCreatePlayerEntity(key, entity)
+        if player then
+            player:update(entity)
+        end
+    end,
+    -- we can also listen to specific models
+    -- ["dojo_starter-Position"] = updatePosition,
+}
+
+function startGame(toriiClient)
+    -- add callbacks for all existing entities
+    dojo:syncEntities(onEntityUpdateCallbacks)
+    -- add callbacks when an entity is updated
+    dojo:setOnEntityUpdateCallbacks(onEntityUpdateCallbacks)
+
+    -- call spawn method
+    dojoActions.spawn()
+
+    -- init ui
+    ui = require("uikit")
+    remainingMoves = ui:createText("Remaining moves: 50", Color.White, "big")
+    remainingMoves.parentDidResize = function()
+        local x = Screen.Width - remainingMoves.Width - 5
+        local y = Screen.Height - remainingMoves.Height - Screen.SafeArea.Top
+        remainingMoves.pos = { x, y }
+    end
+    remainingMoves:parentDidResize()
 end
 
 Client.DirectionalPad = function(dx, dy)
     if dx == -1 then
-        dojo.actions.move(Direction.Left)
+        dojoActions.move(Direction.Left)
     elseif dx == 1 then
-        dojo.actions.move(Direction.Right)
+        dojoActions.move(Direction.Right)
     elseif dy == 1 then
-        dojo.actions.move(Direction.Up)
+        dojoActions.move(Direction.Up)
     elseif dy == -1 then
-        dojo.actions.move(Direction.Down)
+        dojoActions.move(Direction.Down)
     end
 end
 
@@ -237,11 +141,19 @@ end
 
 dojo = {}
 
-dojo.getOrCreateBurner = function(self, config, cb)
-    self.toriiClient:CreateBurner(config.playerAddress, config.playerSigningKey, function(success, burnerAccount)
-        dojo.burnerAccount = burnerAccount
-        cb()
-    end)
+dojo.createBurner = function(self, config, cb)
+    self.toriiClient:CreateBurner(
+        config.playerAddress,
+        config.playerSigningKey,
+        function(success, burnerAccount)
+            if not success then
+                error("Can't create burner")
+                return
+            end
+            dojo.burnerAccount = burnerAccount
+            cb()
+        end
+    )
 end
 
 dojo.createToriiClient = function(self, config)
@@ -253,9 +165,40 @@ dojo.createToriiClient = function(self, config)
             print("Connection failed")
             return
         end
-        self:getOrCreateBurner(config, function()
-            config.onConnect(dojo.toriiClient)
-        end)
+        local json = dojo.toriiClient:GetBurners()
+        local burners = json.burners
+        if not burners then
+            self:createBurner(config, function()
+                config.onConnect(dojo.toriiClient)
+            end)
+        else
+            local lastBurner = burners[1]
+            self.toriiClient:CreateAccount(lastBurner.publicKey, lastBurner.privateKey, function(success, burnerAccount)
+                if not success then
+                    self:createBurner(config, function()
+                        config.onConnect(dojo.toriiClient)
+                    end)
+                    -- error("Can't create burner")
+                    return
+                end
+                dojo.burnerAccount = burnerAccount
+
+                -- test if burner valid (not valid if new katana)
+                local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
+                dojoActions.sync_position(math.floor(playerPos.X), math.floor(playerPos.Y), math.floor(playerPos.Z),
+                    function(error)
+                        if error == "ContractNotFound" then
+                            print("new katana deployed! creating a new burner")
+                            self:createBurner(config, function()
+                                config.onConnect(dojo.toriiClient)
+                            end)
+                        else
+                            print("existing katana")
+                            config.onConnect(dojo.toriiClient)
+                        end
+                    end)
+            end)
+        end
     end
     dojo.toriiClient:Connect()
 end
@@ -268,34 +211,43 @@ dojo.getModel = function(_, entity, modelName)
     end
 end
 
-function bytes_to_hex(data)
-    local hex = "0x"
-    for i = 1, data.Length do
-        hex = hex .. string.format("%02x", data[i])
-    end
-    return hex
+dojo.setOnEntityUpdateCallbacks = function(self, callbacks)
+    local clauseJsonStr = '[{ "Keys": { "keys": [], "models": [], "pattern_matching": "VariableLen" } }]'
+    self.toriiClient:OnEntityUpdate(clauseJsonStr, function(entityKey, entity)
+        for modelName, callback in pairs(callbacks) do
+            local model = self:getModel(entity, modelName)
+            if modelName == "all" or model then
+                callback(entityKey, model, entity)
+            end
+        end
+    end)
 end
 
-function number_to_hexstr(number)
-    return "0x" .. string.format("%x", number)
+dojo.syncEntities = function(self, callbacks)
+    self.toriiClient:Entities('{ "limit": 1000, "offset": 0 }', function(entities)
+        if not entities then
+            return
+        end
+        for entityKey, entity in pairs(entities) do
+            for modelName, callback in pairs(callbacks) do
+                local model = self:getModel(entity, modelName)
+                if model then
+                    callback(entityKey, model, entity)
+                end
+            end
+        end
+    end)
 end
 
--- generated contracts
-
-dojo.actions = {
+-- todo: generate from manifest.json contracts
+dojoActions = {
     spawn = function()
         if not dojo.toriiClient then return end
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn")
+        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]")
     end,
     move = function(dir)
         if not dojo.toriiClient then return end
         dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move",
-            string.format("[\"%s\"]", number_to_hexstr(dir)))
+            string.format("[\"%d\"]", dir))
     end,
-    set_player_config = function(name)
-        if not dojo.toriiClient then return end
-        local serialized = Dojo:SerializeBytearray(name)
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "set_player_config",
-            string.format("[\"%s\"]", string.sub(serialized, 3, #serialized - 2)))
-    end
 }
