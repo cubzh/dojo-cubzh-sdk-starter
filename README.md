@@ -56,7 +56,7 @@ This repository contains a Lua file (`world.lua`) that is loaded by Cubzh when v
    ```
    Note: Include the commit hash to bypass the one-day cache.
 
-## Code Explanation
+## Code Overview
 
 The `world.lua` file contains the following key components:
 
@@ -71,7 +71,68 @@ The `world.lua` file contains the following key components:
 9. Game Initialization: Sets up the game map, camera, and UI
 10. Controls: Handles player movement inputs
 
-For more detailed information about each component, please refer to the comments in the `world.lua` file.
+## Cubzh Dojo SDK
+
+This Cubzh version integrates the `dojo.c` SDK to connect to Katana and Torii.
+
+There are functions exposed in the Dojo global variable but it is easier to use the lua dojo module built on top.
+
+Here are the useful functions of the module used in this example:
+
+```lua
+-- example config:
+local worldInfo = {
+    rpc_url = "http://localhost:5050",
+    torii_url = "http://localhost:8080",
+    world = "0x5d475a9221f6cbf1a016b12400a01b9a89935069aecd57e9876fcb2a7bb29da",
+    actions = "0x025d128c5fe89696e7e15390ea58927bbed4290ae46b538b28cfc7c2190e378b",
+    playerAddress = "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
+    playerSigningKey = "0x2bbf4f9fd0bbb2e60b0316c1fe0b76cf7a4d0198bd493ced9b8df2a3a24d68a",
+}
+```
+
+1. `dojo:createToriiClient(config)`
+    - Creates a Torii client using the provided configuration.
+    - Stores the configuration and created client in the dojo object.
+    - Sets up an OnConnect callback for the client.
+    - Initiates the connection to the Torii client.
+
+2. `dojo:createBurner(config, cb)`
+    - Creates a burner account using the Torii client.
+    - Takes a configuration object and a callback function as parameters.
+    - Calls the callback with success status and error message if applicable.
+    - Stores the created burner account in `dojo.burnerAccount` if successful.
+
+3. `dojo:getModel(entity, modelName)`
+    - Retrieves a specific model from an entity object.
+    - Takes an entity object and a model name as parameters.
+    - Returns the model if found, or nil if not found.
+
+### Callbacks
+
+```lua
+function dojoUpdatePosition(key, position) end
+function dojoUpdateRemainingMoves(key, moves) end
+
+local callbacksExample = {
+    ["dojo_starter-Position"] = dojoUpdatePosition,
+    ["dojo_starter-Moves"] = dojoUpdateRemainingMoves,
+}
+```
+
+1. `dojo:syncEntities(callbacks)`
+    - Synchronizes entities and triggers callbacks for existing entities.
+    - Takes a table of callbacks, similar to setOnEntityUpdateCallbacks.
+    - Fetches up to 1000 entities from the Torii client and processes them with the provided callbacks.
+
+2. `dojo:setOnEntityUpdateCallbacks(callbacks)`
+    - Sets up callbacks for entity updates.
+    - Takes a table of callbacks, where keys are model names and values are callback functions.
+    - Uses the Torii client to listen for entity updates and triggers appropriate callbacks.
+
+### Need more control over the SDK?
+
+You can open the module [here](https://github.com/caillef/cubzh-library/blob/main/dojo/dojo_module.lua) and check how the Dojo table is used
 
 ## Getting Started
 
