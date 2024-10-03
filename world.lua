@@ -48,7 +48,7 @@ end
 function createEntity(key, position, moves)
     local avatarIndex = tonumber(key) % #avatarNames
     local avatar = require("avatar"):get(avatarNames[avatarIndex])
-    avatar.Scale = 0.5
+    avatar.Scale = 0.2
     avatar:SetParent(World)
     avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
     avatar.Rotation.Y = math.pi
