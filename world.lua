@@ -22,72 +22,24 @@ local avatarNames = { "caillef", "aduermael", "gdevillele", "claire", "soliton",
 
 -- GLOBAL VARIABLES
 local entities = {}
+local remainingMoves
 
-Client.OnStart = function()
-    -- init map
-    map = MutableShape()
-    for z = -10, 10 do
-        for x = -10, 10 do
-            map:AddBlock((x + z) % 2 == 0 and Color(63, 155, 10) or Color(48, 140, 4), x, 0, z)
-        end
-    end
-    map:SetParent(World)
-    map.Scale = 5
-    map.Pivot.Y = 1
+-- DOJO FUNCTIONS
+-- todo: generate from manifest.json
+local dojoActions = {
+    spawn = function(callback)
+        if not dojo.toriiClient then return end
+        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]", callback)
+    end,
+    move = function(dir)
+        if not dojo.toriiClient then return end
+        local calldata = string.format("[\"%d\"]", dir)
+        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move", calldata, function() end)
+    end,
+}
 
-    -- init camera
-    Camera:SetModeFree()
-    Camera.Position = { 0, 40, -50 }
-    Camera.Rotation.X = math.pi * 0.25
-
-    -- create Torii client
-    worldInfo.onConnect = initBurners
-    dojo:createToriiClient(worldInfo)
-end
-
-function createEntity(key, position, moves)
-    local avatarIndex = tonumber(key) % #avatarNames
-    local avatar = require("avatar"):get(avatarNames[avatarIndex])
-    avatar.Scale = 0.2
-    avatar:SetParent(World)
-    avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
-    avatar.Rotation.Y = math.pi
-    avatar.Physics = PhysicsMode.Disabled
-
-    entity = {
-        key = key,
-        position = position,
-        moves = moves,
-        originalPos = { x = 10, y = 10 },
-        avatar = avatar
-    }
-    entities[key] = entity
-    return entity
-end
-
-getOrCreatePlayerEntity = function(key, position)
-    local entity = entities[key]
-    if not entity then
-        entity = createEntity(key, position)
-    end
-
-    entity.update = function(self, position)
-        if not position then return end
-        local avatar = self.avatar
-
-        avatar.Position = {
-            ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
-            0,
-            (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
-        }
-
-        self.position = position
-    end
-
-    return entity
-end
-
-function updatePosition(key, position)
+-- dojo callbacks
+function dojoUpdatePosition(key, position)
     if not position then return end
     local player = getOrCreatePlayerEntity(key, position)
     if player then
@@ -95,7 +47,7 @@ function updatePosition(key, position)
     end
 end
 
-function updateRemainingMoves(key, moves)
+function dojoUpdateRemainingMoves(key, moves)
     if not moves then return end
 
     local entity = entities[key]
@@ -123,8 +75,8 @@ function updateRemainingMoves(key, moves)
 end
 
 local onEntityUpdateCallbacks = {
-    ["dojo_starter-Position"] = updatePosition,
-    ["dojo_starter-Moves"] = updateRemainingMoves,
+    ["dojo_starter-Position"] = dojoUpdatePosition,
+    ["dojo_starter-Moves"] = dojoUpdateRemainingMoves,
 }
 
 function initBurners(toriiClient)
@@ -168,7 +120,74 @@ function initBurners(toriiClient)
     end)
 end
 
+-- Entities on the map
+function createEntity(key, position, moves)
+    local avatarIndex = tonumber(key) % #avatarNames
+    local avatar = require("avatar"):get(avatarNames[avatarIndex])
+    avatar.Scale = 0.2
+    avatar:SetParent(World)
+    avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
+    avatar.Rotation.Y = math.pi
+    avatar.Physics = PhysicsMode.Disabled
+
+    entity = {
+        key = key,
+        position = position,
+        moves = moves,
+        originalPos = { x = 10, y = 10 },
+        avatar = avatar
+    }
+    entities[key] = entity
+    return entity
+end
+
+getOrCreatePlayerEntity = function(key, position)
+    local entity = entities[key]
+    if not entity then
+        entity = createEntity(key, position)
+    end
+
+    entity.update = function(self, position)
+        if not position then return end
+        local avatar = self.avatar
+
+        avatar.Position = {
+            ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
+            0,
+            (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
+        }
+
+        self.position = position
+    end
+
+    return entity
+end
+
+-- Cubzh hooks
+Client.OnStart = function()
+    worldInfo.onConnect = initBurners
+    dojo:createToriiClient(worldInfo)
+end
+
+-- called in initBurners when the burner account is created
 function startGame()
+    -- init map
+    map = MutableShape()
+    for z = -10, 10 do
+        for x = -10, 10 do
+            map:AddBlock((x + z) % 2 == 0 and Color(63, 155, 10) or Color(48, 140, 4), x, 0, z)
+        end
+    end
+    map:SetParent(World)
+    map.Scale = 5
+    map.Pivot.Y = 1
+
+    -- init camera
+    Camera:SetModeFree()
+    Camera.Position = { 0, 40, -50 }
+    Camera.Rotation.X = math.pi * 0.25
+
+    -- DOJO
     -- add callbacks for all existing entities
     dojo:syncEntities(onEntityUpdateCallbacks)
     -- add callbacks when an entity is updated
@@ -177,8 +196,8 @@ function startGame()
     -- call spawn method
     dojoActions.spawn()
 
-    -- init ui
-    ui = require("uikit")
+    -- USER INTERFACE
+    local ui = require("uikit")
     remainingMoves = ui:createText("Remaining moves: 50", Color.White, "big")
     remainingMoves.parentDidResize = function()
         local x = Screen.Width - remainingMoves.Width - 5
@@ -188,6 +207,7 @@ function startGame()
     remainingMoves:parentDidResize()
 end
 
+-- Controls
 Client.DirectionalPad = function(dx, dy)
     if dx == -1 then
         dojoActions.move(Direction.Left)
@@ -199,20 +219,3 @@ Client.DirectionalPad = function(dx, dy)
         dojoActions.move(Direction.Down)
     end
 end
-
--- todo: generate from manifest.json
-dojoActions = {
-    spawn = function(callback)
-        if not dojo.toriiClient then return end
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]", callback)
-    end,
-    move = function(dir)
-        if not dojo.toriiClient then return end
-        local calldata = string.format("[\"%d\"]", dir)
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move", calldata, function(err)
-            if err then
-                error(err)
-            end
-        end)
-    end,
-}
