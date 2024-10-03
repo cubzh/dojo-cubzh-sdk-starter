@@ -41,7 +41,7 @@ Client.OnStart = function()
 end
 
 getOrCreatePlayerEntity = function(key, data)
-    if not dojo:getModel(data, "dojo_examples-Position") then
+    if not dojo:getModel(data, "dojo_starter-Position") then
         return
     end
     local entity = entities[key]
@@ -67,7 +67,7 @@ getOrCreatePlayerEntity = function(key, data)
     entity.update = function(self, newEntity)
         local avatar = self.avatar
 
-        local moves = dojo:getModel(newEntity, "dojo_examples-Moves")
+        local moves = dojo:getModel(newEntity, "dojo_starter-Moves")
         if moves then
             if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
             if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
@@ -80,7 +80,7 @@ getOrCreatePlayerEntity = function(key, data)
             end
         end
 
-        local position = dojo:getModel(newEntity, "dojo_examples-Position")
+        local position = dojo:getModel(newEntity, "dojo_starter-Position")
         if position then
             avatar.Position = {
                 ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
@@ -95,18 +95,19 @@ getOrCreatePlayerEntity = function(key, data)
     return entity
 end
 
+function entityUpdate(key, entity)
+    print("ENTITY UPDATE", key, entity)
+    if not entity then return end
+    print("update", key, JSON:Encode(entity))
+    local player = getOrCreatePlayerEntity(key, entity)
+    if player then
+        player:update(entity)
+    end
+end
+
 local onEntityUpdateCallbacks = {
-    all = function(key, entity)
-        print("ENTITY UPDATE", key, entity)
-        if not entity then return end
-        print("update", key, JSON:Encode(entity))
-        local player = getOrCreatePlayerEntity(key, entity)
-        if player then
-            player:update(entity)
-        end
-    end,
-    -- we can also listen to specific models
-    -- ["dojo_starter-Position"] = updatePosition,
+    ["dojo_starter-Position"] = entityUpdate,
+    ["dojo_starter-Moves"] = entityUpdate,
 }
 
 function startGame()
@@ -221,7 +222,7 @@ dojo.setOnEntityUpdateCallbacks = function(self, callbacks)
     self.toriiClient:OnEntityUpdate(clauseJsonStr, function(entityKey, entity)
         for modelName, callback in pairs(callbacks) do
             local model = self:getModel(entity, modelName)
-            if modelName == "all" or model then
+            if model then
                 callback(entityKey, model, entity)
             end
         end
