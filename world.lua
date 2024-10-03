@@ -1,3 +1,7 @@
+Modules = {
+    dojo = "github.com/caillef/cubzh-library/dojo"
+}
+
 local worldInfo = {
     rpc_url = "http://localhost:5050",
     torii_url = "http://localhost:8080",
@@ -34,15 +38,13 @@ Client.OnStart = function()
     Camera.Position = { 0, 40, -50 }
     Camera.Rotation.X = math.pi * 0.25
 
-    print("createtoriiclient")
     -- create Torii client
-    worldInfo.onConnect = startGame
+    worldInfo.onConnect = initBurners
     dojo:createToriiClient(worldInfo)
 end
 
 function createEntity(key, position, moves)
     local avatarIndex = tonumber(key) % #avatarNames
-    print("avatar index", avatarIndex)
     local avatar = require("avatar"):get(avatarNames[avatarIndex])
     avatar.Scale = 0.2
     avatar:SetParent(World)
@@ -71,7 +73,6 @@ getOrCreatePlayerEntity = function(key, position)
         if not position then return end
         local avatar = self.avatar
 
-        print("POSITION", JSON:Encode(position))
         avatar.Position = {
             ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
             0,
@@ -123,6 +124,46 @@ local onEntityUpdateCallbacks = {
     ["dojo_starter-Moves"] = updateRemainingMoves,
 }
 
+function initBurners(toriiClient)
+    -- get latest burner or deploy a new one
+    local json = toriiClient:GetBurners()
+    local burners = json.burners
+
+    local createBurnerCallback = function(success, errorMessage)
+        if not success then
+            error(errorMessage)
+            return
+        end
+        startGame()
+    end
+
+    -- no burner, create a new one
+    if not burners then
+        dojo:createBurner(worldInfo, createBurnerCallback)
+        return
+    end
+
+    -- get latest burner
+    local lastBurner = burners[1]
+    toriiClient:CreateAccount(lastBurner.publicKey, lastBurner.privateKey, function(success, burnerAccount)
+        if not success then
+            dojo:createBurner(worldInfo, createBurnerCallback)
+            return
+        end
+        dojo.burnerAccount = burnerAccount
+
+        -- test if burner valid (not valid if new katana deployed for example)
+        dojoActions.spawn(function(error)
+            if error == "ContractNotFound" then
+                print("new katana deployed! creating a new burner")
+                dojo:createBurner(worldInfo, createBurnerCallback)
+                return
+            end
+            startGame()
+        end)
+    end)
+end
+
 function startGame()
     -- add callbacks for all existing entities
     dojo:syncEntities(onEntityUpdateCallbacks)
@@ -153,109 +194,6 @@ Client.DirectionalPad = function(dx, dy)
     elseif dy == -1 then
         dojoActions.move(Direction.Down)
     end
-end
-
--- dojo module
-
-dojo = {}
-
-dojo.createBurner = function(self, config, cb)
-    self.toriiClient:CreateBurner(
-        config.playerAddress,
-        config.playerSigningKey,
-        function(success, burnerAccount)
-            if not success then
-                error("Can't create burner")
-                return
-            end
-            dojo.burnerAccount = burnerAccount
-            cb()
-        end
-    )
-end
-
-dojo.createToriiClient = function(self, config)
-    dojo.config = config
-    local err
-    dojo.toriiClient = Dojo:CreateToriiClient(config.torii_url, config.rpc_url, config.world)
-    dojo.toriiClient.OnConnect = function(success)
-        if not success then
-            print("Connection failed")
-            return
-        end
-        local json = dojo.toriiClient:GetBurners()
-        local burners = json.burners
-        if not burners then
-            self:createBurner(config, function()
-                config.onConnect(dojo.toriiClient)
-            end)
-        else
-            local lastBurner = burners[1]
-            self.toriiClient:CreateAccount(lastBurner.publicKey, lastBurner.privateKey, function(success, burnerAccount)
-                if not success then
-                    self:createBurner(config, function()
-                        config.onConnect(dojo.toriiClient)
-                    end)
-                    -- error("Can't create burner")
-                    return
-                end
-                dojo.burnerAccount = burnerAccount
-                -- -- test if burner valid (not valid if new katana)
-                -- local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
-                dojoActions.spawn(function(error)
-                    if error == "ContractNotFound" then
-                        print("new katana deployed! creating a new burner")
-                        self:createBurner(config, function()
-                            config.onConnect(dojo.toriiClient)
-                        end)
-                    else
-                        print("existing katana")
-                        config.onConnect(dojo.toriiClient)
-                    end
-                end)
-            end)
-        end
-    end
-    dojo.toriiClient:Connect()
-end
-
-dojo.getModel = function(_, entity, modelName)
-    if not entity then
-        return
-    end
-    for key, model in pairs(entity) do
-        if key == modelName then
-            return model
-        end
-    end
-end
-
-dojo.setOnEntityUpdateCallbacks = function(self, callbacks)
-    local clauseJsonStr = '[{ "Keys": { "keys": [], "models": [], "pattern_matching": "VariableLen" } }]'
-    self.toriiClient:OnEntityUpdate(clauseJsonStr, function(entityKey, entity)
-        for modelName, callback in pairs(callbacks) do
-            local model = self:getModel(entity, modelName)
-            if model then
-                callback(entityKey, model, entity)
-            end
-        end
-    end)
-end
-
-dojo.syncEntities = function(self, callbacks)
-    self.toriiClient:Entities('{ "limit": 1000, "offset": 0 }', function(entities)
-        if not entities then
-            return
-        end
-        for entityKey, entity in pairs(entities) do
-            for modelName, callback in pairs(callbacks) do
-                local model = self:getModel(entity, modelName)
-                if model then
-                    callback(entityKey, model, entity)
-                end
-            end
-        end
-    end)
 end
 
 -- todo: generate from manifest.json contracts
