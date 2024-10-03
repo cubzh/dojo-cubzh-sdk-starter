@@ -43,7 +43,6 @@ function dojoUpdatePosition(key, position)
     if not position then return end
     local player = getOrCreatePlayerEntity(key, position)
     if player then
-        print("new pos", JSON:Encode(position))
         player.avatar.Position = {
             ((position.vec.value.x.value - player.originalPos.x) + 0.5) * map.Scale.X,
             0,
@@ -182,9 +181,7 @@ function startGame()
 
     -- DOJO
     -- add callbacks for all existing entities
-    Timer(2, function()
-        dojo:syncEntities(onEntityUpdateCallbacks)
-    end)
+    dojo:syncEntities(onEntityUpdateCallbacks)
     -- add callbacks when an entity is updated
     dojo:setOnEntityUpdateCallbacks(onEntityUpdateCallbacks)
 
