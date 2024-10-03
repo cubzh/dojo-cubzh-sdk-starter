@@ -3,7 +3,7 @@ local worldInfo = {
     torii_url = "http://localhost:8080",
     world = "0x5d475a9221f6cbf1a016b12400a01b9a89935069aecd57e9876fcb2a7bb29da",
     actions = "0x791c005d5ce51675daeb505b205d4cb4132d1cf5ecf57ea97440c0a2262a5de",
-    playerAddress = "0x640466ebd2ce505209d3e5c4494b4276ed8f1cde764d757eb48831961f7cdea",
+    playerAddress = "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
     playerSigningKey = "0x2bbf4f9fd0bbb2e60b0316c1fe0b76cf7a4d0198bd493ced9b8df2a3a24d68a",
 }
 
