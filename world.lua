@@ -1,5 +1,5 @@
 Modules = {
-    dojo = "github.com/caillef/cubzh-library/dojo"
+    dojo = "github.com/caillef/cubzh-library/dojo:d4e2b24d881e330d9d2229b7363235b5a0e3ac37"
 }
 
 local worldInfo = {
@@ -88,32 +88,20 @@ getOrCreatePlayerEntity = function(key, position)
 end
 
 function updatePosition(key, position)
-    print("A")
     if not position then return end
-    print("B")
     local player = getOrCreatePlayerEntity(key, position)
-    print("C")
-
     if player then
         player:update(position)
-        print("D")
     end
 end
 
 function updateRemainingMoves(key, moves)
-    print("1")
-
     if not moves then return end
 
-    print("2")
     local entity = entities[key]
     if not entity then
-        print("3")
-
         entity = createEntity(key, nil, moves)
     end
-
-    print("4")
 
     entity.moves = moves
     local avatar = entity.avatar
@@ -124,14 +112,10 @@ function updateRemainingMoves(key, moves)
     if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
     if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
 
-    print("5")
-
     -- Check if is local player
     local myAddress = dojo.burnerAccount.Address
     local isLocalPlayer = myAddress == moves.player.value
     if not isLocalPlayer then return end
-
-    print("6")
 
     if remainingMoves then
         remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
