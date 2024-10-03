@@ -164,7 +164,6 @@ dojo.createToriiClient = function(self, config)
     local err
     dojo.toriiClient = Dojo:CreateToriiClient(config.torii_url, config.rpc_url, config.world)
     dojo.toriiClient.OnConnect = function(success)
-        print(">> on connect")
         if not success then
             print("Connection failed")
             return
@@ -186,21 +185,19 @@ dojo.createToriiClient = function(self, config)
                     return
                 end
                 dojo.burnerAccount = burnerAccount
-                print(">> here")
                 -- -- test if burner valid (not valid if new katana)
                 -- local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
-                -- dojoActions.sync_position(math.floor(playerPos.X), math.floor(playerPos.Y), math.floor(playerPos.Z),
-                --     function(error)
-                --         if error == "ContractNotFound" then
-                --             print("new katana deployed! creating a new burner")
-                --             self:createBurner(config, function()
-                --                 config.onConnect(dojo.toriiClient)
-                --             end)
-                --         else
-                --             print("existing katana")
-                --             config.onConnect(dojo.toriiClient)
-                --         end
-                --     end)
+                dojoActions.spawn(function(error)
+                    if error == "ContractNotFound" then
+                        print("new katana deployed! creating a new burner")
+                        self:createBurner(config, function()
+                            config.onConnect(dojo.toriiClient)
+                        end)
+                    else
+                        print("existing katana")
+                        config.onConnect(dojo.toriiClient)
+                    end
+                end)
             end)
         end
     end
@@ -248,10 +245,10 @@ end
 
 -- todo: generate from manifest.json contracts
 dojoActions = {
-    spawn = function()
+    spawn = function(callback)
         if not dojo.toriiClient then return end
         print(dojo.burnerAccount, dojo.config.actions, "spawn")
-        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]")
+        dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]", callback)
     end,
     move = function(dir)
         if not dojo.toriiClient then return end
