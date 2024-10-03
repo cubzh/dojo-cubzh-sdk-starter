@@ -24,6 +24,7 @@ local avatarNames = { "caillef", "aduermael", "gdevillele", "claire", "soliton",
 local entities = {}
 
 Client.OnStart = function()
+    -- init map
     map = MutableShape()
     for z = -10, 10 do
         for x = -10, 10 do
@@ -34,6 +35,7 @@ Client.OnStart = function()
     map.Scale = 5
     map.Pivot.Y = 1
 
+    -- init camera
     Camera:SetModeFree()
     Camera.Position = { 0, 40, -50 }
     Camera.Rotation.X = math.pi * 0.25
@@ -86,33 +88,50 @@ getOrCreatePlayerEntity = function(key, position)
 end
 
 function updatePosition(key, position)
+    print("A")
     if not position then return end
+    print("B")
     local player = getOrCreatePlayerEntity(key, position)
+    print("C")
+
     if player then
         player:update(position)
+        print("D")
     end
 end
 
 function updateRemainingMoves(key, moves)
+    print("1")
+
     if not moves then return end
 
+    print("2")
     local entity = entities[key]
     if not entity then
+        print("3")
+
         entity = createEntity(key, nil, moves)
     end
 
+    print("4")
+
     entity.moves = moves
     local avatar = entity.avatar
+
     -- Rotate avatar based on latest direction
     if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
     if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
     if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
     if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
 
+    print("5")
+
     -- Check if is local player
     local myAddress = dojo.burnerAccount.Address
     local isLocalPlayer = myAddress == moves.player.value
     if not isLocalPlayer then return end
+
+    print("6")
 
     if remainingMoves then
         remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
@@ -147,6 +166,7 @@ function initBurners(toriiClient)
     local lastBurner = burners[1]
     toriiClient:CreateAccount(lastBurner.publicKey, lastBurner.privateKey, function(success, burnerAccount)
         if not success then
+            -- can't recreate latest burner, making a new one
             dojo:createBurner(worldInfo, createBurnerCallback)
             return
         end
@@ -196,17 +216,15 @@ Client.DirectionalPad = function(dx, dy)
     end
 end
 
--- todo: generate from manifest.json contracts
+-- todo: generate from manifest.json
 dojoActions = {
     spawn = function(callback)
         if not dojo.toriiClient then return end
-        print(dojo.burnerAccount, dojo.config.actions, "spawn")
         dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]", callback)
     end,
     move = function(dir)
         if not dojo.toriiClient then return end
         local calldata = string.format("[\"%d\"]", dir)
-        print(dojo.burnerAccount, dojo.config.actions, "move", calldata)
         dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "move", calldata)
     end,
 }
