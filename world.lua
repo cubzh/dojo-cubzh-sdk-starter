@@ -68,9 +68,10 @@ getOrCreatePlayerEntity = function(key, position)
     end
 
     entity.update = function(self, position)
+        if not position then return end
         local avatar = self.avatar
 
-        print("POSITION", JSON:Encode(position.vec.value))
+        print("POSITION", JSON:Encode(position))
         avatar.Position = {
             ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
             0,
@@ -99,6 +100,7 @@ function updateRemainingMoves(key, moves)
         entity = createEntity(key, nil, moves)
     end
 
+    entity.moves = moves
     local avatar = entity.avatar
     -- Rotate avatar based on latest direction
     if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
