@@ -247,6 +247,7 @@ end
 dojoActions = {
     spawn = function()
         if not dojo.toriiClient then return end
+        print(dojo.burnerAccount, dojo.config.actions, "spawn")
         dojo.toriiClient:Execute(dojo.burnerAccount, dojo.config.actions, "spawn", "[]")
     end,
     move = function(dir)
