@@ -40,10 +40,7 @@ Client.OnStart = function()
     dojo:createToriiClient(worldInfo)
 end
 
-getOrCreatePlayerEntity = function(key, data)
-    if not dojo:getModel(data, "dojo_starter-Position") then
-        return
-    end
+getOrCreatePlayerEntity = function(key, position)
     local entity = entities[key]
     if not entity then
         local avatarIndex = tonumber(key) % #avatarNames
@@ -56,58 +53,60 @@ getOrCreatePlayerEntity = function(key, data)
         avatar.Physics = PhysicsMode.Disabled
 
         entity = {
-            key = data.Key,
-            data = data,
+            key = key,
+            position = position,
             originalPos = { x = 10, y = 10 },
             avatar = avatar
         }
         entities[key] = entity
     end
 
-    entity.update = function(self, newEntity)
+    entity.update = function(self, position)
         local avatar = self.avatar
 
-        local moves = dojo:getModel(newEntity, "dojo_starter-Moves")
-        if moves then
-            if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
-            if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
-            if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
-            if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
+        avatar.Position = {
+            ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
+            0,
+            (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
+        }
 
-            local isLocalPlayer = myAddress == moves.player.value
-            if remainingMoves and isLocalPlayer then
-                remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
-            end
-        end
-
-        local position = dojo:getModel(newEntity, "dojo_starter-Position")
-        if position then
-            avatar.Position = {
-                ((position.vec.value.x.value - self.originalPos.x) + 0.5) * map.Scale.X,
-                0,
-                (-(position.vec.value.y.value - self.originalPos.y) + 0.5) * map.Scale.Z
-            }
-        end
-
-        self.data = newEntity
+        self.position = position
     end
 
     return entity
 end
 
-function entityUpdate(key, entity)
-    print("ENTITY UPDATE", key, entity)
-    if not entity then return end
-    print("update", key, JSON:Encode(entity))
-    local player = getOrCreatePlayerEntity(key, entity)
+function updatePosition(key, model)
+    if not model then return end
+    local player = getOrCreatePlayerEntity(key, model)
     if player then
-        player:update(entity)
+        player:update(model)
+    end
+end
+
+function updateRemainingMoves(key, moves)
+    if not moves then return end
+
+    -- Check if is local player
+    local myAddress = dojo.burnerAccount.Address
+    local isLocalPlayer = myAddress == moves.player.value
+    if not isLocalPlayer then return end
+
+    print("REMAININGMOVE", JSON:Encode(moves))
+    -- Rotate avatar based on latest direction
+    if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
+    if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
+    if moves.last_direction.value.option == "Up" then avatar.Rotation.Y = 0 end
+    if moves.last_direction.value.option == "Down" then avatar.Rotation.Y = math.pi end
+
+    if remainingMoves then
+        remainingMoves.Text = string.format("Remaining moves: %d", moves.remaining.value)
     end
 end
 
 local onEntityUpdateCallbacks = {
-    ["dojo_starter-Position"] = entityUpdate,
-    ["dojo_starter-Moves"] = entityUpdate,
+    ["dojo_starter-Position"] = updatePosition,
+    ["dojo_starter-Moves"] = updateRemainingMoves,
 }
 
 function startGame()
