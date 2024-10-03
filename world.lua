@@ -45,9 +45,9 @@ function dojoUpdatePosition(key, position)
     if player then
         print("new pos", position)
         player.avatar.Position = {
-            ((position.vec.value.x.value - avatar.originalPos.x) + 0.5) * map.Scale.X,
+            ((position.vec.value.x.value - player.originalPos.x) + 0.5) * map.Scale.X,
             0,
-            (-(position.vec.value.y.value - avatar.originalPos.y) + 0.5) * map.Scale.Z
+            (-(position.vec.value.y.value - player.originalPos.y) + 0.5) * map.Scale.Z
         }
         player.position = position
     end
