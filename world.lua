@@ -1,5 +1,5 @@
 Modules = {
-    dojo = "github.com/caillef/cubzh-library/dojo:d4e2b24d881e330d9d2229b7363235b5a0e3ac37"
+    dojo = "github.com/caillef/cubzh-library/dojo:026b937a9339a057e53cef52061213ee404e970e"
 }
 
 local worldInfo = {
