@@ -164,6 +164,7 @@ dojo.createToriiClient = function(self, config)
     local err
     dojo.toriiClient = Dojo:CreateToriiClient(config.torii_url, config.rpc_url, config.world)
     dojo.toriiClient.OnConnect = function(success)
+        print(">> on connect")
         if not success then
             print("Connection failed")
             return
@@ -185,7 +186,7 @@ dojo.createToriiClient = function(self, config)
                     return
                 end
                 dojo.burnerAccount = burnerAccount
-
+                print(">> here")
                 -- -- test if burner valid (not valid if new katana)
                 -- local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
                 -- dojoActions.sync_position(math.floor(playerPos.X), math.floor(playerPos.Y), math.floor(playerPos.Z),
