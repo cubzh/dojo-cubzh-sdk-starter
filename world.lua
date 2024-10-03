@@ -40,25 +40,31 @@ Client.OnStart = function()
     dojo:createToriiClient(worldInfo)
 end
 
+function createEntity(key, position, moves)
+    local avatarIndex = tonumber(key) % #avatarNames
+    print("avatar index", avatarIndex)
+    local avatar = require("avatar"):get(avatarNames[avatarIndex])
+    avatar.Scale = 0.2
+    avatar:SetParent(World)
+    avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
+    avatar.Rotation.Y = math.pi
+    avatar.Physics = PhysicsMode.Disabled
+
+    entity = {
+        key = key,
+        position = position,
+        moves = moves,
+        originalPos = { x = 10, y = 10 },
+        avatar = avatar
+    }
+    entities[key] = entity
+    return entity
+end
+
 getOrCreatePlayerEntity = function(key, position)
     local entity = entities[key]
     if not entity then
-        local avatarIndex = tonumber(key) % #avatarNames
-        print("avatar index", avatarIndex)
-        local avatar = require("avatar"):get(avatarNames[avatarIndex])
-        avatar.Scale = 0.2
-        avatar:SetParent(World)
-        avatar.Position = { 0.5 * map.Scale.X, 0, 0.5 * map.Scale.Z }
-        avatar.Rotation.Y = math.pi
-        avatar.Physics = PhysicsMode.Disabled
-
-        entity = {
-            key = key,
-            position = position,
-            originalPos = { x = 10, y = 10 },
-            avatar = avatar
-        }
-        entities[key] = entity
+        entity = createEntity(key, position)
     end
 
     entity.update = function(self, position)
@@ -77,18 +83,23 @@ getOrCreatePlayerEntity = function(key, position)
     return entity
 end
 
-function updatePosition(key, model)
-    if not model then return end
-    local player = getOrCreatePlayerEntity(key, model)
+function updatePosition(key, position)
+    if not position then return end
+    local player = getOrCreatePlayerEntity(key, position)
     if player then
-        player:update(model)
+        player:update(position)
     end
 end
 
 function updateRemainingMoves(key, moves)
     if not moves then return end
 
-    local avatar = entities[key].avatar
+    local entity = entities[key]
+    if not entity then
+        entity = createEntity(key, nil, moves)
+    end
+
+    local avatar = entity.avatar
     -- Rotate avatar based on latest direction
     if moves.last_direction.value.option == "Left" then avatar.Rotation.Y = math.pi * -0.5 end
     if moves.last_direction.value.option == "Right" then avatar.Rotation.Y = math.pi * 0.5 end
