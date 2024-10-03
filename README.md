@@ -46,7 +46,7 @@ This repository contains a Lua file (`world.lua`) that is loaded by Cubzh when v
 ## Frontend Update (Cubzh)
 
 1. Fork this repository
-2. Your version of the game is now accessible at https://app.cu.bzh/?script=github.com/<username>/<repo>:<commithash>
+2. Your version of the game is now accessible at `https://app.cu.bzh/?script=github.com/<username>/<repo>:<commithash>`
 3. Update the "Play" button URL in the README (replace with URL of your fork)
 4. Visit your Github repository page and click "Play"
 5. Make desired changes in `world.lua`
