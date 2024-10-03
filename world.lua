@@ -2,7 +2,7 @@ local worldInfo = {
     rpc_url = "http://localhost:5050",
     torii_url = "http://localhost:8080",
     world = "0x5d475a9221f6cbf1a016b12400a01b9a89935069aecd57e9876fcb2a7bb29da",
-    actions = "0x791c005d5ce51675daeb505b205d4cb4132d1cf5ecf57ea97440c0a2262a5de",
+    actions = "0x025d128c5fe89696e7e15390ea58927bbed4290ae46b538b28cfc7c2190e378b",
     playerAddress = "0xb3ff441a68610b30fd5e2abbf3a1548eb6ba6f3559f2862bf2dc757e5828ca",
     playerSigningKey = "0x2bbf4f9fd0bbb2e60b0316c1fe0b76cf7a4d0198bd493ced9b8df2a3a24d68a",
 }
@@ -109,7 +109,6 @@ local onEntityUpdateCallbacks = {
 }
 
 function startGame()
-    print("start game")
     -- add callbacks for all existing entities
     dojo:syncEntities(onEntityUpdateCallbacks)
     -- add callbacks when an entity is updated
