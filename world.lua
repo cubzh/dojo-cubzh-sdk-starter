@@ -34,6 +34,7 @@ Client.OnStart = function()
     Camera.Position = { 0, 40, -50 }
     Camera.Rotation.X = math.pi * 0.25
 
+    print("createtoriiclient")
     -- create Torii client
     worldInfo.onConnect = startGame
     dojo:createToriiClient(worldInfo)
@@ -106,7 +107,8 @@ local onEntityUpdateCallbacks = {
     -- ["dojo_starter-Position"] = updatePosition,
 }
 
-function startGame(toriiClient)
+function startGame()
+    print("start game")
     -- add callbacks for all existing entities
     dojo:syncEntities(onEntityUpdateCallbacks)
     -- add callbacks when an entity is updated
