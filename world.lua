@@ -43,7 +43,7 @@ function dojoUpdatePosition(key, position)
     if not position then return end
     local player = getOrCreatePlayerEntity(key, position)
     if player then
-        print("new pos", position)
+        print("new pos", JSON:Encode(position))
         player.avatar.Position = {
             ((position.vec.value.x.value - player.originalPos.x) + 0.5) * map.Scale.X,
             0,
