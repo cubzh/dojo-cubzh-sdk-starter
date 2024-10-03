@@ -183,20 +183,20 @@ dojo.createToriiClient = function(self, config)
                 end
                 dojo.burnerAccount = burnerAccount
 
-                -- test if burner valid (not valid if new katana)
-                local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
-                dojoActions.sync_position(math.floor(playerPos.X), math.floor(playerPos.Y), math.floor(playerPos.Z),
-                    function(error)
-                        if error == "ContractNotFound" then
-                            print("new katana deployed! creating a new burner")
-                            self:createBurner(config, function()
-                                config.onConnect(dojo.toriiClient)
-                            end)
-                        else
-                            print("existing katana")
-                            config.onConnect(dojo.toriiClient)
-                        end
-                    end)
+                -- -- test if burner valid (not valid if new katana)
+                -- local playerPos = Player.Position + Number3(1, 1, 1) * 1000000
+                -- dojoActions.sync_position(math.floor(playerPos.X), math.floor(playerPos.Y), math.floor(playerPos.Z),
+                --     function(error)
+                --         if error == "ContractNotFound" then
+                --             print("new katana deployed! creating a new burner")
+                --             self:createBurner(config, function()
+                --                 config.onConnect(dojo.toriiClient)
+                --             end)
+                --         else
+                --             print("existing katana")
+                --             config.onConnect(dojo.toriiClient)
+                --         end
+                --     end)
             end)
         end
     end
