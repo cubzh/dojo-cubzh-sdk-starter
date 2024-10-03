@@ -8,7 +8,11 @@
   <img src="diamondpit.gif" alt="Play Now" width="100%" height="100%">
 </div>
 
-This repository contains a Lua file (`world.lua`) that is loaded by Cubzh when visiting [this link](https://app.cu.bzh/editions/dojo-1.0.0-alpha.12/?script=github.com/cubzh/dojo-cubzh-sdk-starter).
+This repository is a starter pack to start building your game using Cubzh and the Dojo SDK.
+
+[Dojo](https://github.com/dojoengine/dojo) is a powerful game engine designed to create fully on-chain games, leveraging blockchain technology to ensure transparency, ownership, and decentralized gameplay. It allows developers to build complex game logic and state management directly on the blockchain.
+
+[Cubzh](https://github.com/cubzh/cubzh) complements Dojo beautifully as a frontend solution for several reasons: it uses Lua, a language known for its simplicity and ease of learning, making it accessible to both novice and experienced developers. Additionally, Cubzh's voxel-based graphics system, where everything is constructed from cubes, provides a unique and charming aesthetic that's easy to work with. Furthermore, Cubzh boasts a vibrant community of creators who have produced a vast array of pre-made items and assets, significantly speeding up the game development process and allowing developers to focus on implementing their unique game mechanics and integrating with Dojo's on-chain capabilities.
 
 ## Backend Setup with Dojo
 
